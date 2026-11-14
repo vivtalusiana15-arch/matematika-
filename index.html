@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Matematika Kelas VI - Rasio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        body { font-family: 'Nunito', sans-serif; background-color: #f0fdfa; color: #1e293b; }
+        .hidden-view { display: none !important; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .btn-primary { background-color: #3b82f6; color: white; transition: all 0.2s; }
+        .btn-primary:hover { background-color: #2563eb; transform: translateY(-2px); }
+        .btn-accent { background-color: #eab308; color: white; transition: all 0.2s; }
+        .btn-accent:hover { background-color: #ca8a04; transform: translateY(-2px); }
+        .btn-success { background-color: #22c55e; color: white; transition: all 0.2s; }
+        .btn-success:hover { background-color: #16a34a; transform: translateY(-2px); }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .game-area { background: url('https://www.transparenttextures.com/patterns/cubes.png'), linear-gradient(to right bottom, #dbeafe, #bfdbfe); }
+        /* Loader */
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- OVERLAY LOADING -->
+    <div id="loadingOverlay" class="hidden-view fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex flex-col items-center justify-center text-white">
+        <div class="loader mb-4"></div>
+        <p class="text-xl font-bold" id="loadingText">Menyimpan data...</p>
+    </div>
+
+    <!-- 1. LOGIN VIEW -->
+    <div id="loginView" class="flex-grow flex items-center justify-center p-4 fade-in bg-blue-500">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center border-4 border-yellow-400">
+            <div class="w-24 h-24 bg-blue-100 rounded-full mx-auto flex items-center justify-center mb-4">
+                <i class="fas fa-rocket text-4xl text-blue-500"></i>
+            </div>
+            <h1 class="text-3xl font-extrabold text-blue-600 mb-2">SELAMAT DATANG DI PETUALANGAN MATEMATIKA!</h1>
+            <p class="text-gray-600 mb-6 font-semibold">Masukkan nama lengkapmu untuk memulai petualangan belajar.</p>
+            
+            <input type="text" id="inputNama" placeholder="Tuliskan nama lengkapmu..." class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none mb-4 text-lg text-center font-bold">
+            
+            <div class="w-full px-4 py-3 rounded-xl bg-gray-100 border-2 border-gray-200 mb-6 text-lg font-bold text-gray-500 cursor-not-allowed">
+                Kelas VI
+            </div>
+            
+            <button onclick="handleLogin()" class="w-full btn-primary text-xl font-bold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2">
+                <i class="fas fa-play"></i> MULAI PETUALANGAN
+            </button>
+            <p id="loginError" class="text-red-500 mt-2 hidden text-sm font-bold">Nama tidak boleh kosong!</p>
+        </div>
+    </div>
+
+    <!-- MAIN APP WRAPPER (Hidden on load) -->
+    <div id="appWrapper" class="hidden-view flex-grow flex flex-col">
+        
+        <!-- HEADER -->
+        <header class="bg-white shadow-md p-4 sticky top-0 z-40">
+            <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="navigate('dashboard')">
+                    <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold"><i class="fas fa-calculator"></i></div>
+                    <h1 class="text-xl md:text-2xl font-extrabold text-blue-600 hidden md:block">PETUALANGAN MATEMATIKA</h1>
+                </div>
+                
+                <div class="flex items-center gap-4 text-sm md:text-base font-bold text-gray-700">
+                    <div class="flex items-center gap-1 text-yellow-500"><i class="fas fa-star"></i> <span id="headerStars">0</span></div>
+                    <div class="flex items-center gap-1 text-green-500"><i class="fas fa-trophy"></i> <span id="headerScore">0</span></div>
+                    <div class="border-l-2 border-gray-300 pl-4 flex items-center gap-2">
+                        <i class="fas fa-user-graduate text-blue-500"></i> <span id="headerName">Siswa</span> (Kelas VI)
+                    </div>
+                    <button onclick="handleLogout()" class="ml-2 text-red-500 hover:text-red-700" title="Keluar"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 2. DASHBOARD VIEW -->
+        <main id="dashboardView" class="flex-grow p-4 md:p-8 max-w-6xl mx-auto w-full fade-in hidden-view">
+            <div class="bg-blue-600 rounded-3xl p-6 md:p-10 text-white mb-8 shadow-xl relative overflow-hidden">
+                <div class="relative z-10">
+                    <h2 class="text-3xl md:text-4xl font-extrabold mb-2" id="welcomeMessage">Halo, Siswa! Siap belajar hari ini?</h2>
+                    <p class="text-blue-100 text-lg md:text-xl italic">"Jangan takut salah, karena setiap kesalahan adalah kesempatan untuk belajar!"</p>
+                </div>
+                <i class="fas fa-compass absolute right-[-20px] bottom-[-20px] text-9xl text-blue-500 opacity-50 transform -rotate-12"></i>
+            </div>
+
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-extrabold text-gray-800">Daftar Materi Rasio</h3>
+                <button onclick="navigate('results')" class="btn-success px-4 py-2 rounded-lg font-bold shadow"><i class="fas fa-chart-bar mr-2"></i>Hasil Belajar</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="moduleCardsContainer">
+                <!-- Cards injected via JS -->
+            </div>
+        </main>
+
+        <!-- 3. MODULE VIEW -->
+        <main id="moduleView" class="flex-grow p-4 md:p-8 max-w-5xl mx-auto w-full fade-in hidden-view">
+            <button onclick="navigate('dashboard')" class="mb-4 text-blue-600 font-bold hover:underline"><i class="fas fa-arrow-left mr-1"></i> Kembali ke Dashboard</button>
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-gray-100">
+                <div class="bg-blue-500 p-6 text-white text-center">
+                    <h2 class="text-3xl font-extrabold" id="modTitle">Judul Materi</h2>
+                </div>
+                <div class="p-6 md:p-10 space-y-6 text-lg text-gray-700 leading-relaxed" id="modContent">
+                    <!-- Content injected via JS -->
+                </div>
+                <div class="bg-gray-50 p-6 flex flex-col md:flex-row justify-center gap-4 border-t-2 border-gray-100">
+                    <button id="btnPlayGame" class="btn-accent px-8 py-4 rounded-xl font-extrabold text-xl shadow-lg w-full md:w-auto"><i class="fas fa-gamepad mr-2"></i> MAIN GAME MATERI</button>
+                    <button id="btnTakeQuiz" class="btn-primary px-8 py-4 rounded-xl font-extrabold text-xl shadow-lg w-full md:w-auto"><i class="fas fa-pen-alt mr-2"></i> KUIS 10 SOAL</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- 4. GAME VIEW -->
+        <main id="gameView" class="flex-grow p-4 md:p-8 max-w-5xl mx-auto w-full fade-in hidden-view">
+            <button onclick="navigate('module')" class="mb-4 text-blue-600 font-bold hover:underline"><i class="fas fa-arrow-left mr-1"></i> Kembali ke Materi</button>
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-orange-200">
+                <div class="bg-orange-500 p-4 text-white flex justify-between items-center">
+                    <h2 class="text-2xl font-extrabold" id="gameTitle">Nama Game</h2>
+                    <div class="text-xl font-bold bg-orange-600 px-4 py-1 rounded-full"><i class="fas fa-star text-yellow-300"></i> Skor: <span id="gameScoreVal">0</span></div>
+                </div>
+                
+                <div class="p-6 game-area min-h-[400px] flex flex-col items-center justify-center relative">
+                    <!-- Timer for Game 4 -->
+                    <div id="gameTimer" class="absolute top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-full font-bold text-xl hidden-view">
+                        <i class="fas fa-clock"></i> <span id="timerVal">00:00</span>
+                    </div>
+
+                    <div id="gameIntro" class="text-center bg-white p-8 rounded-2xl shadow-lg max-w-md">
+                        <i id="gameIcon" class="fas fa-puzzle-piece text-6xl text-orange-500 mb-4"></i>
+                        <h3 class="text-2xl font-bold mb-2">Instruksi Misi</h3>
+                        <p class="mb-6 text-gray-600 font-semibold" id="gameInstruction">Selesaikan misi ini!</p>
+                        <button onclick="startGameplay()" class="btn-accent px-6 py-3 rounded-xl font-bold text-xl w-full">Mulai Bermain</button>
+                    </div>
+
+                    <div id="gamePlayArea" class="hidden-view w-full max-w-3xl bg-white p-6 md:p-8 rounded-2xl shadow-lg text-center">
+                        <div class="mb-4 flex justify-between text-gray-500 font-bold">
+                            <span>Tantangan <span id="gameCurrentQ">1</span>/10</span>
+                        </div>
+                        <h3 class="text-2xl font-extrabold text-blue-800 mb-6" id="gameQuestion">Pertanyaan Game</h3>
+                        <div id="gameOptions" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Options injected -->
+                        </div>
+                        <div id="gameFeedback" class="mt-6 text-xl font-bold hidden opacity-0 transition-opacity"></div>
+                    </div>
+                    
+                    <div id="gameResultArea" class="hidden-view w-full max-w-md bg-white p-8 rounded-2xl shadow-lg text-center">
+                        <i class="fas fa-trophy text-6xl text-yellow-400 mb-4"></i>
+                        <h3 class="text-3xl font-extrabold mb-2">Misi Selesai!</h3>
+                        <p class="text-xl mb-2 font-bold text-gray-600">Skor Akhir: <span id="gameFinalScore" class="text-blue-600">0</span>/100</p>
+                        <p id="gameBadge" class="text-2xl font-extrabold mb-6 text-green-500"></p>
+                        <button onclick="finishGame()" class="btn-primary w-full px-6 py-3 rounded-xl font-bold text-lg">Simpan & Kembali</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 5. QUIZ VIEW -->
+        <main id="quizView" class="flex-grow p-4 md:p-8 max-w-4xl mx-auto w-full fade-in hidden-view">
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-blue-200">
+                <div class="bg-blue-600 p-4 text-white flex justify-between items-center">
+                    <h2 class="text-2xl font-extrabold">Kuis Evaluasi</h2>
+                    <div class="font-bold text-lg">Soal <span id="quizCurrentQ">1</span>/10</div>
+                </div>
+                
+                <div id="quizPlayArea" class="p-6 md:p-10">
+                    <h3 class="text-xl md:text-2xl font-bold text-gray-800 mb-6" id="quizQuestion">Pertanyaan Kuis</h3>
+                    <div id="quizOptions" class="space-y-3">
+                        <!-- Quiz options -->
+                    </div>
+                    <div class="mt-8 flex justify-end">
+                        <button id="btnQuizNext" onclick="nextQuiz()" class="btn-primary px-6 py-3 rounded-xl font-bold text-lg hidden">Selanjutnya <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+
+                <div id="quizResultArea" class="hidden-view p-6 md:p-10 text-center">
+                    <i class="fas fa-clipboard-check text-6xl text-green-500 mb-4"></i>
+                    <h3 class="text-3xl font-extrabold mb-4">Hasil Kuis</h3>
+                    <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto mb-6">
+                        <div class="bg-green-100 p-4 rounded-xl text-green-700 font-bold"><div class="text-3xl" id="quizBenar">0</div>Benar</div>
+                        <div class="bg-red-100 p-4 rounded-xl text-red-700 font-bold"><div class="text-3xl" id="quizSalah">0</div>Salah</div>
+                    </div>
+                    <div class="text-2xl font-extrabold mb-6">Nilai: <span id="quizNilai" class="text-blue-600 text-4xl">0</span></div>
+                    
+                    <div id="quizPembahasan" class="text-left bg-gray-50 p-6 rounded-xl border mb-6 text-sm md:text-base hidden">
+                        <h4 class="font-bold text-lg mb-4 text-blue-600">Pembahasan:</h4>
+                        <div id="pembahasanList" class="space-y-4"></div>
+                    </div>
+                    
+                    <button onclick="finishQuiz()" class="btn-success px-8 py-3 rounded-xl font-bold text-lg w-full md:w-auto">Simpan Nilai & Selesai</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- 6. RESULTS VIEW -->
+        <main id="resultsView" class="flex-grow p-4 md:p-8 max-w-5xl mx-auto w-full fade-in hidden-view">
+            <button onclick="navigate('dashboard')" class="mb-4 text-blue-600 font-bold hover:underline"><i class="fas fa-arrow-left mr-1"></i> Kembali ke Dashboard</button>
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden">
+                <div class="bg-green-500 p-6 text-white text-center">
+                    <h2 class="text-3xl font-extrabold">Rekap Hasil Belajar</h2>
+                    <p class="text-green-100 text-lg mt-1" id="resStudentInfo">Nama Siswa - Kelas VI</p>
+                </div>
+                
+                <div class="p-6 md:p-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 text-center">
+                        <div class="bg-yellow-50 p-6 rounded-2xl border-2 border-yellow-200">
+                            <i class="fas fa-star text-4xl text-yellow-400 mb-2"></i>
+                            <div class="text-3xl font-black text-gray-800" id="resTotalStars">0</div>
+                            <div class="text-gray-600 font-bold">Total Bintang</div>
+                        </div>
+                        <div class="bg-blue-50 p-6 rounded-2xl border-2 border-blue-200">
+                            <i class="fas fa-gamepad text-4xl text-blue-400 mb-2"></i>
+                            <div class="text-3xl font-black text-gray-800" id="resAvgGame">0</div>
+                            <div class="text-gray-600 font-bold">Rata-rata Game</div>
+                        </div>
+                        <div class="bg-purple-50 p-6 rounded-2xl border-2 border-purple-200">
+                            <i class="fas fa-clipboard-list text-4xl text-purple-400 mb-2"></i>
+                            <div class="text-3xl font-black text-gray-800" id="resAvgQuiz">0</div>
+                            <div class="text-gray-600 font-bold">Rata-rata Kuis</div>
+                        </div>
+                    </div>
+
+                    <h3 class="text-xl font-bold mb-4 border-b pb-2">Rincian Per Materi</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-700">
+                                    <th class="p-3 border">Materi</th>
+                                    <th class="p-3 border text-center">Skor Game</th>
+                                    <th class="p-3 border text-center">Nilai Kuis</th>
+                                    <th class="p-3 border text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resTableBody">
+                                <!-- Injected -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+<script>
+/** =========================================================================
+ *  KONFIGURASI SISTEM & API (SUDAH DIPERBARUI)
+ *  ========================================================================= */
+const CONFIG = {
+    // API URL milik Anda
+    API_URL: "https://script.google.com/macros/s/AKfycbzkDW5u82YSaLCmy-pZ4zZc55JNhuInL3PoYLMuGdh_Sw_ZMfa0E09pL9J9Fvfgz-I/exec", 
+    classLevel: "Kelas VI"
+};
+
+/** =========================================================================
+ *  DATABASE MATERI, GAME, DAN KUIS
+ *  ========================================================================= */
+const CONTENT = [
+    {
+        id: "m1",
+        title: "1. Kesamaan Rasio",
+        icon: "fa-equals",
+        color: "blue",
+        objectives: [
+            "Menjelaskan kesamaan rasio.",
+            "Menyederhanakan rasio.",
+            "Menentukan rasio yang senilai.",
+            "Menggunakan perkalian dan pembagian untuk menentukan kesamaan rasio.",
+            "Menyelesaikan masalah kontekstual menggunakan tabel rasio."
+        ],
+        theory: `
+            <h3 class='font-bold text-xl text-blue-600'>A. Pengertian Kesamaan Rasio</h3>
+            <p>Kesamaan rasio atau rasio senilai adalah dua rasio atau lebih yang memiliki nilai yang sama jika disederhanakan. Ini mirip dengan konsep pecahan senilai.</p>
+            
+            <h3 class='font-bold text-xl text-blue-600 mt-4'>B. Menyederhanakan dan Mencari Rasio Senilai</h3>
+            <p>Kita dapat menyederhanakan rasio dengan <strong>membagi</strong> kedua bilangan dengan angka yang sama. Sebaliknya, kita bisa mencari rasio senilai yang lebih besar dengan <strong>mengalikan</strong> kedua bilangan dengan angka yang sama.</p>
+            
+            <div class='bg-blue-50 p-4 rounded-xl my-4 border border-blue-200'>
+                <h4 class='font-bold mb-2'><i class='fas fa-seedling text-green-600'></i> Contoh Kasus: Polybag & Bibit Tanaman</h4>
+                <p>Pak Wayan menjelaskan bahwa lahan seluas 10 m² dapat menampung 12 bibit tanaman. Mari kita gunakan tabel rasio:</p>
+                <table class='w-full text-center mt-3 border-collapse bg-white'>
+                    <tr class='bg-blue-100'><th class='border p-2'>Luas Lahan (m²)</th><th class='border p-2'>Bibit Tanaman</th><th class='border p-2'>Keterangan</th></tr>
+                    <tr><td class='border p-2 font-bold'>10</td><td class='border p-2 font-bold'>12</td><td class='border p-2 text-sm text-gray-500'>Rasio awal</td></tr>
+                    <tr class='bg-gray-50'><td class='border p-2'>5</td><td class='border p-2'>6</td><td class='border p-2 text-sm text-blue-500'>Disederhanakan (:2)</td></tr>
+                    <tr><td class='border p-2'>25</td><td class='border p-2'>30</td><td class='border p-2 text-sm text-green-500'>Dikali 5 dari (5:6)</td></tr>
+                    <tr class='bg-gray-50'><td class='border p-2'>20</td><td class='border p-2'>24</td><td class='border p-2 text-sm text-orange-500'>Dikali 4 dari (5:6)</td></tr>
+                </table>
+                <p class='mt-3'><strong>Kesimpulan:</strong> Rasio 10:12 senilai dengan 5:6, 25:30, dan 20:24.</p>
+            </div>
+        `,
+        gameName: "Petualangan Rasio Senilai",
+        gameInstruction: "Kamu sedang berada di kebun! Temukan rasio senilai, sederhanakan, dan lengkapi tabel untuk mendapatkan poin!",
+        gameIcon: "fa-leaf",
+        gameColor: "green",
+        gameData: [
+            { q: "Sederhanakan rasio ini: 10 : 12 = ... : ...", opts: ["5 : 6", "2 : 3", "20 : 24", "1 : 2"], ans: 0 },
+            { q: "Rasio mana yang senilai dengan 5 : 6?", opts: ["15 : 20", "20 : 24", "10 : 15", "25 : 36"], ans: 1 },
+            { q: "Jika luas lahan 5 m² muat 6 bibit. Berapa bibit untuk 15 m²?", opts: ["12 bibit", "24 bibit", "18 bibit", "15 bibit"], ans: 2 },
+            { q: "Lengkapi tabel: Lahan 20 m², Bibit ... (Berdasarkan rasio 5:6)", opts: ["20", "24", "30", "12"], ans: 1 },
+            { q: "Untuk menyederhanakan 12 : 28 menjadi 3 : 7, kedua angka dibagi dengan...", opts: ["2", "3", "4", "5"], ans: 2 },
+            { q: "Rasio 2 : 5 senilai dengan...", opts: ["4 : 10", "5 : 2", "10 : 15", "6 : 20"], ans: 0 },
+            { q: "Lahan 8 m² cukup untuk 10 bibit. Bentuk paling sederhana rasionya adalah...", opts: ["4 : 5", "2 : 3", "16 : 20", "1 : 2"], ans: 0 },
+            { q: "Jika rasio 4:5 dikalikan 3, hasilnya adalah...", opts: ["12 : 15", "7 : 8", "16 : 20", "43 : 53"], ans: 0 },
+            { q: "Sebuah kebun punya rasio pupuk:bibit = 2:3. Jika bibit ada 15, pupuk butuh...", opts: ["5", "10", "12", "8"], ans: 1 },
+            { q: "Apakah rasio 6:8 senilai dengan 9:12?", opts: ["Ya", "Tidak", "Mungkin", "Kurang Informasi"], ans: 0 }
+        ],
+        quizData: [
+            // Mudah (3)
+            { q: "Bentuk sederhana dari rasio 12 : 18 adalah...", opts: ["2 : 3", "3 : 4", "4 : 6", "6 : 9"], ans: 0, exp: "12 dan 18 sama-sama dibagi 6, hasilnya 2 : 3." },
+            { q: "Rasio 1 : 4 senilai dengan...", opts: ["2 : 6", "3 : 12", "4 : 12", "5 : 15"], ans: 1, exp: "1x3 = 3, 4x3 = 12. Jadi senilai dengan 3 : 12." },
+            { q: "Manakah operasi yang benar untuk mendapatkan kesamaan rasio?", opts: ["Ditambah angka yang sama", "Dikurang angka yang sama", "Dikali/dibagi angka yang sama", "Dikuadratkan"], ans: 2, exp: "Kesamaan rasio didapat dengan operasi perkalian atau pembagian." },
+            // Sedang (4)
+            { q: "Berdasarkan tabel rasio, jika 5 m² lahan muat 6 bibit, maka 25 m² lahan muat ... bibit.", opts: ["15", "20", "25", "30"], ans: 3, exp: "25 m² adalah 5 kali lipat dari 5 m². Maka jumlah bibit 6 x 5 = 30." },
+            { q: "Lahan 20 m² butuh 24 polybag. Jika polybag yang tersedia hanya 12, luas lahan yang sesuai adalah...", opts: ["10 m²", "5 m²", "15 m²", "8 m²"], ans: 0, exp: "12 adalah setengah dari 24 (:2). Maka lahan 20 : 2 = 10 m²." },
+            { q: "Di antara rasio berikut, manakah yang senilai dengan 15 : 20?", opts: ["30 : 50", "3 : 4", "5 : 6", "10 : 15"], ans: 1, exp: "15:20 disederhanakan dengan dibagi 5, hasilnya 3 : 4." },
+            { q: "Tabel rasio: \n[Buku 2] -> [Harga Rp10.000]\n[Buku 6] -> [Harga ?]", opts: ["Rp20.000", "Rp30.000", "Rp40.000", "Rp60.000"], ans: 1, exp: "6 buku adalah 3 kalinya (6:2). Maka Rp10.000 x 3 = Rp30.000." },
+            // Sulit (3)
+            { q: "Rasio luas lahan : jumlah bibit adalah 3 : 8. Jika sebuah sekolah ingin menanam 40 bibit, berapa luas lahan yang harus disiapkan?", opts: ["12 m²", "15 m²", "18 m²", "24 m²"], ans: 1, exp: "40 bibit = 8 x 5. Maka luas lahan = 3 x 5 = 15 m²." },
+            { q: "Perbandingan A : B = 2 : 3 dan B : C = 3 : 5. Rasio A : C adalah...", opts: ["2 : 5", "3 : 5", "5 : 2", "1 : 2"], ans: 0, exp: "Karena nilai B sudah sama (3), maka A : C langsung 2 : 5." },
+            { q: "Pekarangan Pak Ali ditanami mawar dan melati dengan rasio 5 : 7. Jika mawar berjumlah 35 pohon, berapakah jumlah melati?", opts: ["40", "42", "49", "56"], ans: 2, exp: "Mawar = 5 satuan = 35 pohon (1 satuan = 7). Melati = 7 x 7 = 49 pohon." }
+        ]
+    },
+    {
+        id: "m2",
+        title: "2. Rasio Satuan",
+        icon: "fa-shopping-cart",
+        color: "yellow",
+        objectives: [
+            "Menjelaskan pengertian rasio satuan.",
+            "Menentukan nilai satuan.",
+            "Menggunakan konsep harga satuan.",
+            "Menentukan banyak barang berdasarkan satuan waktu.",
+            "Menyelesaikan masalah sehari-hari menggunakan rasio satuan."
+        ],
+        theory: `
+            <h3 class='font-bold text-xl text-yellow-600'>A. Pengertian Rasio Satuan</h3>
+            <p>Rasio satuan merupakan rasio di mana salah satu besarannya bernilai <strong>1</strong>. Sering ditandai dengan kata <em>"per"</em> (yang bermakna setiap/tiap), contohnya "per bibit", "per jam", "per meter".</p>
+            
+            <h3 class='font-bold text-xl text-yellow-600 mt-4'>B. Harga Satuan (Harga Per Barang)</h3>
+            <p>Kita menentukan nilai satuan dengan <strong>membagi</strong> jumlah harga dengan kuantitasnya.</p>
+            
+            <div class='bg-yellow-50 p-4 rounded-xl my-4 border border-yellow-200'>
+                <h4 class='font-bold mb-2'><i class='fas fa-store text-orange-600'></i> Contoh: Membandingkan Harga Paket Bibit</h4>
+                <ul class='list-disc pl-5 mb-2'>
+                    <li><strong>Paket A:</strong> 3 bibit seharga Rp37.500.</li>
+                    <li><strong>Paket B:</strong> 5 bibit seharga Rp58.000.</li>
+                </ul>
+                <p><strong>Perhitungan Harga Satuan:</strong></p>
+                <p>Paket A = Rp37.500 ÷ 3 = <strong>Rp12.500 / bibit</strong></p>
+                <p>Paket B = Rp58.000 ÷ 5 = <strong>Rp11.600 / bibit</strong></p>
+                <p class='mt-2 font-bold text-green-600'>Kesimpulan: Paket B lebih murah per bibitnya!</p>
+            </div>
+
+            <div class='bg-gray-50 p-4 rounded-xl my-4 border border-gray-200'>
+                <h4 class='font-bold mb-2'><i class='fas fa-stopwatch text-blue-600'></i> Contoh: Kecepatan Pengemasan</h4>
+                <p>Penjaga toko mengemas 6 bibit dalam 1,5 jam. Berapa bibit per jam?</p>
+                <p><strong>Langkah:</strong> 6 ÷ 1,5 = <strong>4 bibit per jam</strong>.</p>
+                <p>Jika dia bekerja 4 jam, jumlah bibit = 4 jam × 4 bibit/jam = <strong>16 bibit</strong>.</p>
+            </div>
+        `,
+        gameName: "Toko Pintar Rasio Satuan",
+        gameInstruction: "Bantu pelanggan memilih barang terbaik dan hitung harga atau jumlah per jam dengan benar!",
+        gameIcon: "fa-store",
+        gameColor: "yellow",
+        gameData: [
+            { q: "Harga 3 bibit Rp30.000. Harga satuannya (per bibit) adalah?", opts: ["Rp10.000", "Rp15.000", "Rp90.000", "Rp5.000"], ans: 0 },
+            { q: "Paket A: 2 bibit Rp24.000. Paket B: 4 bibit Rp40.000. Mana yang lebih murah per bibit?", opts: ["Paket A", "Paket B", "Sama saja", "Tidak bisa dihitung"], ans: 1 },
+            { q: "Penjaga toko mengemas 8 bibit dalam 2 jam. Rasio satuannya adalah...", opts: ["4 bibit/jam", "6 bibit/jam", "16 bibit/jam", "2 bibit/jam"], ans: 0 },
+            { q: "Jika kecepatan 4 bibit/jam, berapa bibit selesai dalam 3 jam?", opts: ["12 bibit", "7 bibit", "1 bibit", "16 bibit"], ans: 0 },
+            { q: "Harga 5 buku Rp25.000. Harga satuan buku adalah...", opts: ["Rp4.000", "Rp5.000", "Rp10.000", "Rp2.500"], ans: 1 },
+            { q: "Sebuah mesin mencetak 100 lembar dalam 5 menit. Berapa lembar per menit?", opts: ["20 lembar", "15 lembar", "25 lembar", "50 lembar"], ans: 0 },
+            { q: "Mobil A menempuh 120 km dalam 2 jam. Kecepatannya adalah...", opts: ["60 km/jam", "120 km/jam", "40 km/jam", "240 km/jam"], ans: 0 },
+            { q: "Harga 1 kg telur Rp30.000. Jika butuh 2,5 kg, harganya...", opts: ["Rp60.000", "Rp75.000", "Rp65.000", "Rp90.000"], ans: 1 },
+            { q: "Paket C berisi 6 sabun harga Rp18.000. Harga 1 sabun adalah...", opts: ["Rp2.000", "Rp3.000", "Rp4.000", "Rp6.000"], ans: 1 },
+            { q: "Dalam rasio satuan 50 km/jam, angka mana yang bernilai 1?", opts: ["Jarak", "Waktu (jam)", "Kecepatan", "Tidak ada"], ans: 1 }
+        ],
+        quizData: [
+            // Mudah (3)
+            { q: "Rasio satuan adalah rasio yang salah satu besarannya bernilai...", opts: ["0", "1", "10", "100"], ans: 1, exp: "Rasio satuan selalu membandingkan kuantitas terhadap 1 satuan unit yang lain (contoh: /jam, /buah)." },
+            { q: "Harga 4 pensil adalah Rp12.000. Harga per pensil adalah...", opts: ["Rp2.000", "Rp3.000", "Rp4.000", "Rp6.000"], ans: 1, exp: "Rp12.000 ÷ 4 = Rp3.000." },
+            { q: "Kata 'per' dalam matematika seperti 'per jam' atau 'per meter' bermakna...", opts: ["Setiap / Tiap 1 bagian", "Dikali", "Ditambah", "Sebagian"], ans: 0, exp: "Kata 'per' mengindikasikan rasio terhadap satu satuan (tiap/setiap)." },
+            // Sedang (4)
+            { q: "Toko A menjual 3 buku Rp15.000. Toko B menjual 5 buku yang sama Rp20.000. Toko mana yang harga satuan bukunya lebih murah?", opts: ["Toko A", "Toko B", "Sama Murah", "Tidak bisa dihitung"], ans: 1, exp: "Toko A: 15.000/3 = 5.000. Toko B: 20.000/5 = 4.000. Toko B lebih murah." },
+            { q: "Pekerja menyelesaikan 15 anyaman dalam 3 hari. Banyak anyaman per hari adalah...", opts: ["3 anyaman", "4 anyaman", "5 anyaman", "6 anyaman"], ans: 2, exp: "15 ÷ 3 = 5 anyaman per hari." },
+            { q: "Jika harga 1 bibit tanaman Rp12.500, maka harga untuk 4 bibit adalah...", opts: ["Rp40.000", "Rp45.000", "Rp50.000", "Rp60.000"], ans: 2, exp: "Rp12.500 x 4 = Rp50.000." },
+            { q: "Sebuah pompa mengalirkan 12 liter air dalam 1,5 menit. Kecepatan aliran per menit adalah...", opts: ["6 liter/menit", "8 liter/menit", "10 liter/menit", "9 liter/menit"], ans: 1, exp: "12 ÷ 1,5 = 8 liter/menit." },
+            // Sulit (3)
+            { q: "Paket X: 250 gram pupuk harga Rp15.000. Paket Y: 400 gram pupuk harga Rp20.000. Mana yang harga per gramnya lebih mahal?", opts: ["Paket X", "Paket Y", "Keduanya Sama", "Data kurang"], ans: 0, exp: "Paket X = 15000/250 = Rp60/gr. Paket Y = 20000/400 = Rp50/gr. Paket X lebih mahal." },
+            { q: "Seorang petani memanen 180 kg tomat dalam 4 jam. Jika ia bekerja dengan kecepatan yang sama selama 7 jam, total panennya adalah...", opts: ["270 kg", "315 kg", "360 kg", "280 kg"], ans: 1, exp: "Per jam = 180 / 4 = 45 kg/jam. Untuk 7 jam = 45 x 7 = 315 kg." },
+            { q: "Andi membeli 1,5 kg mangga seharga Rp24.000. Berapa uang yang harus dibayar Budi jika ia ingin membeli 2 kg mangga di tempat yang sama?", opts: ["Rp30.000", "Rp32.000", "Rp36.000", "Rp40.000"], ans: 1, exp: "Harga per kg = 24.000 / 1.5 = 16.000. Untuk 2 kg = 16.000 x 2 = Rp32.000." }
+        ]
+    },
+    {
+        id: "m3",
+        title: "3. Rasio Bagian thd Keseluruhan",
+        icon: "fa-chart-pie",
+        color: "purple",
+        objectives: [
+            "Menjelaskan rasio bagian terhadap bagian.",
+            "Menjelaskan rasio bagian terhadap keseluruhan.",
+            "Menentukan jumlah keseluruhan.",
+            "Menentukan rasio dari data yang diketahui.",
+            "Menyelesaikan soal cerita."
+        ],
+        theory: `
+            <h3 class='font-bold text-xl text-purple-600'>A. Rasio Bagian terhadap Bagian</h3>
+            <p>Membandingkan satu kelompok dengan kelompok lainnya.</p>
+            <div class='bg-purple-50 p-4 rounded-xl my-2 border border-purple-200'>
+                <p>Contoh: Di toko terdapat 3 tanaman hias dan 2 tanaman obat. <br>
+                Rasio tanaman hias terhadap obat adalah <strong>3 : 2</strong>.</p>
+            </div>
+
+            <h3 class='font-bold text-xl text-purple-600 mt-4'>B. Rasio Bagian terhadap Keseluruhan</h3>
+            <p>Membandingkan satu kelompok dengan jumlah <strong>total</strong> seluruh benda.</p>
+            <div class='bg-purple-50 p-4 rounded-xl my-2 border border-purple-200'>
+                <p>Menggunakan contoh di atas, jumlah keseluruhan tanaman = 3 + 2 = <strong>5</strong>.</p>
+                <ul class='list-disc pl-5'>
+                    <li>Rasio tanaman hias terhadap <em>seluruh</em> tanaman = <strong>3 : 5</strong></li>
+                    <li>Rasio tanaman obat terhadap <em>seluruh</em> tanaman = <strong>2 : 5</strong></li>
+                </ul>
+            </div>
+
+            <div class='bg-gray-50 p-4 rounded-xl my-4 border border-gray-200'>
+                <h4 class='font-bold mb-2'><i class='fas fa-search text-green-600'></i> Contoh: Menghitung Jumlah Sebenarnya</h4>
+                <p>Rasio tanaman hias : tanaman obat = <strong>5 : 4</strong>.</p>
+                <p>Total rasio (keseluruhan) = 5 + 4 = <strong>9</strong>.</p>
+                <p>Jika diketahui jumlah <strong>seluruh</strong> tanaman di toko adalah <strong>72</strong> pot, berapakah jumlah tanaman hias?</p>
+                <p class='mt-2 font-bold'>Penyelesaian:</p>
+                <p>Tanaman hias = (Rasio hias / Rasio keseluruhan) × Jumlah asli</p>
+                <p>Tanaman hias = (5 / 9) × 72 = 5 × 8 = <strong>40 pot</strong>.</p>
+                <p>Tanaman obat = (4 / 9) × 72 = 4 × 8 = <strong>32 pot</strong>.</p>
+                <p class='text-sm text-gray-500 mt-1'>Cek: 40 + 32 = 72. (Benar!)</p>
+            </div>
+        `,
+        gameName: "Misi Detektif Rasio",
+        gameInstruction: "Detektif, temukan rasio bagian, rasio total, dan jumlah benda sebenarnya berdasarkan petunjuk rahasia!",
+        gameIcon: "fa-user-secret",
+        gameColor: "purple",
+        gameData: [
+            { q: "Dalam kelas ada 10 laki-laki, 15 perempuan. Rasio Laki-laki thd Perempuan adalah?", opts: ["2 : 3", "10 : 25", "3 : 2", "1 : 1"], ans: 0 },
+            { q: "Dari soal sebelumnya, rasio Laki-laki thd TOTAL siswa adalah?", opts: ["10 : 15", "2 : 5", "3 : 5", "5 : 2"], ans: 1 },
+            { q: "Rasio Apel : Jeruk = 3 : 4. Total bagian rasionya adalah...", opts: ["3", "4", "7", "12"], ans: 2 },
+            { q: "Rasio Apel : Jeruk = 3 : 4. Jika total buah 21, banyak Jeruk adalah?", opts: ["9 buah", "12 buah", "15 buah", "21 buah"], ans: 1 },
+            { q: "Rasio Kucing : Anjing = 1 : 2. Rasio Kucing thd Keseluruhan adalah...", opts: ["1 : 2", "2 : 1", "1 : 3", "2 : 3"], ans: 2 },
+            { q: "Jika Rasio Buku : Pensil = 5 : 2, dan total ada 35 barang. Banyak Pensil?", opts: ["10", "15", "20", "25"], ans: 0 },
+            { q: "Tanaman Hias:Obat = 5:4. Rasio Hias thd Keseluruhan adalah...", opts: ["5:4", "5:9", "4:9", "9:5"], ans: 1 },
+            { q: "Kelereng merah 8, biru 12. Rasio merah thd total (disederhanakan)?", opts: ["8 : 20", "2 : 5", "2 : 3", "3 : 5"], ans: 1 },
+            { q: "Diketahui rasio bagian terhadap keseluruhan 2 : 7. Rasio bagian thd bagian lainnya?", opts: ["2 : 5", "5 : 2", "2 : 9", "7 : 2"], ans: 0 },
+            { q: "Total siswa 40. Rasio L : P = 3 : 5. Jumlah siswa Laki-laki?", opts: ["10", "15", "20", "25"], ans: 1 }
+        ],
+        quizData: [
+            // Mudah (3)
+            { q: "Rasio ayam jantan terhadap ayam betina di sebuah peternakan adalah 2 : 5. Ini adalah contoh rasio...", opts: ["Bagian terhadap Keseluruhan", "Bagian terhadap Bagian", "Satuan", "Senilai"], ans: 1, exp: "Membandingkan dua kelompok yang berbeda (jantan vs betina) adalah rasio bagian terhadap bagian." },
+            { q: "Jika ada 4 pot merah dan 6 pot hijau, berapakah jumlah keseluruhan pot?", opts: ["2", "4", "6", "10"], ans: 3, exp: "Keseluruhan = 4 + 6 = 10 pot." },
+            { q: "Rasio pot merah terhadap seluruh pot pada soal sebelumnya adalah...", opts: ["4 : 6", "6 : 10", "4 : 10", "10 : 4"], ans: 2, exp: "Pot merah = 4, seluruh pot = 10. Rasio = 4 : 10." },
+            // Sedang (4)
+            { q: "Rasio kelereng Andi dan Budi adalah 3 : 5. Jika ditotal, rasio keseluruhan kelereng mereka adalah...", opts: ["3", "5", "8", "15"], ans: 2, exp: "Total rasio = 3 + 5 = 8." },
+            { q: "Sebuah keranjang berisi mangga dan apel dengan rasio mangga : apel = 3 : 4. Rasio mangga terhadap keseluruhan buah adalah...", opts: ["3 : 4", "3 : 7", "4 : 7", "7 : 3"], ans: 1, exp: "Total rasio = 3+4 = 7. Rasio mangga = 3 : 7." },
+            { q: "Dalam kantong terdapat bola merah dan putih. Rasio bola putih terhadap keseluruhan adalah 2 : 5. Berapakah rasio bola merah terhadap keseluruhan?", opts: ["3 : 5", "5 : 2", "2 : 3", "3 : 2"], ans: 0, exp: "Total rasio 5. Putih 2, maka merah 5-2 = 3. Rasio merah thd keseluruhan = 3 : 5." },
+            { q: "Perbandingan kelereng biru dan kuning adalah 4 : 5. Jika jumlah seluruh kelereng 36, maka banyak kelereng biru adalah...", opts: ["16", "20", "15", "25"], ans: 0, exp: "Total rasio = 9. Kelereng biru = (4/9) x 36 = 16." },
+            // Sulit (3)
+            { q: "Toko menjual bibit mangga dan rambutan. Rasio bibit rambutan terhadap keseluruhan bibit adalah 3 : 8. Jika jumlah bibit mangga ada 25 pohon, berapakah jumlah seluruh bibit?", opts: ["30", "40", "50", "64"], ans: 1, exp: "Rambutan = 3, Keseluruhan = 8. Maka Mangga = 8 - 3 = 5. 5 bagian = 25 pohon (1 bagian = 5). Keseluruhan = 8 x 5 = 40 pohon." },
+            { q: "Sebuah kelas terdiri dari 30 siswa. Rasio siswa perempuan terhadap siswa laki-laki adalah 3 : 2. Berapa selisih jumlah perempuan dan laki-laki?", opts: ["2", "5", "6", "10"], ans: 2, exp: "P=3, L=2, Total=5. 5 bag=30 -> 1 bag=6. Selisih rasio (3-2)=1 bagian. 1 x 6 = 6." },
+            { q: "Diketahui rasio beras A dan beras B dalam campuran adalah 5 : 4. Jika berat campuran tersebut 45 kg, berat beras B di dalam campuran adalah...", opts: ["20 kg", "25 kg", "30 kg", "35 kg"], ans: 0, exp: "Total rasio = 9. Beras B = (4/9) x 45 kg = 20 kg." }
+        ]
+    },
+    {
+        id: "m4",
+        title: "4. Penerapan Rasio Waktu",
+        icon: "fa-clock",
+        color: "red",
+        objectives: [
+            "Memahami penerapan rasio dalam durasi waktu.",
+            "Mengubah satuan waktu.",
+            "Menghitung perbandingan kegiatan berdasarkan waktu.",
+            "Menyelesaikan masalah kontekstual."
+        ],
+        theory: `
+            <h3 class='font-bold text-xl text-red-600'>A. Hubungan Waktu</h3>
+            <p>Untuk menerapkan rasio dalam durasi waktu, kita perlu mengingat konversi satuan waktu:</p>
+            <ul class='list-disc pl-5 bg-red-50 p-4 rounded-xl border border-red-200 mt-2 font-bold text-gray-700'>
+                <li>1 menit = 60 detik</li>
+                <li>1 jam = 60 menit</li>
+                <li>1 hari = 24 jam</li>
+                <li>1 minggu = 7 hari</li>
+            </ul>
+
+            <h3 class='font-bold text-xl text-red-600 mt-4'>B. Menghitung Kegiatan Berdasarkan Waktu</h3>
+            <p>Kita dapat menggunakan <strong>Tabel Rasio</strong> untuk menyelesaikan permasalahan waktu.</p>
+            
+            <div class='bg-gray-50 p-4 rounded-xl my-4 border border-gray-200'>
+                <h4 class='font-bold mb-2'><i class='fas fa-box-open text-orange-600'></i> Contoh: Pengemasan Barang</h4>
+                <p>Seorang pegawai pabrik dapat mengemas 20 kotak produk dalam waktu 5 menit. Berapa kotak yang dapat ia kemas dalam waktu 1 jam?</p>
+                <p class='mt-2 font-bold'>Penyelesaian dengan Tabel Rasio:</p>
+                <table class='w-full text-center mt-2 border-collapse bg-white'>
+                    <tr class='bg-red-100'><th class='border p-2'>Waktu</th><th class='border p-2'>Jumlah Kotak</th></tr>
+                    <tr><td class='border p-2'>5 menit</td><td class='border p-2'>20</td></tr>
+                    <tr class='bg-gray-50 text-red-500 font-bold'><td class='border p-2'>1 menit</td><td class='border p-2'>4 <em>(dibagi 5)</em></td></tr>
+                    <tr><td class='border p-2 font-bold'>60 menit (1 jam)</td><td class='border p-2 font-bold'>240 <em>(dikali 60)</em></td></tr>
+                </table>
+                <p class='mt-3'>Jadi, dalam 1 jam pegawai tersebut dapat mengemas <strong>240 kotak</strong>.</p>
+            </div>
+        `,
+        gameName: "Balap Waktu Matematika",
+        gameInstruction: "Balapan melawan waktu! Jawab dengan cepat konversi waktu dan perbandingan kegiatan! Hati-hati ada timer di atas!",
+        gameIcon: "fa-stopwatch",
+        gameColor: "red",
+        gameData: [
+            { q: "1 jam sama dengan berapa menit?", opts: ["30 menit", "60 menit", "120 menit", "24 menit"], ans: 1 },
+            { q: "Jika Budi membaca 2 halaman dalam 5 menit, berapa halaman dalam 15 menit?", opts: ["4 halaman", "6 halaman", "8 halaman", "10 halaman"], ans: 1 },
+            { q: "2 hari sama dengan berapa jam?", opts: ["24 jam", "36 jam", "48 jam", "72 jam"], ans: 2 },
+            { q: "Mesin membuat 5 botol per detik. Berapa botol dalam 1 menit?", opts: ["5 botol", "60 botol", "300 botol", "150 botol"], ans: 2 },
+            { q: "Jika jarak 10 km ditempuh 15 menit, jarak 40 km butuh waktu...", opts: ["30 menit", "45 menit", "60 menit (1 jam)", "90 menit"], ans: 2 },
+            { q: "1,5 jam sama dengan...", opts: ["60 menit", "75 menit", "90 menit", "100 menit"], ans: 2 },
+            { q: "Ani melipat 10 baju tiap 2 menit. Rasio per menitnya adalah?", opts: ["2 baju/menit", "5 baju/menit", "10 baju/menit", "20 baju/menit"], ans: 1 },
+            { q: "Sita lari keliling lapangan 2 kali dalam 10 menit. Untuk 6 kali putaran, butuh?", opts: ["15 menit", "20 menit", "30 menit", "40 menit"], ans: 2 },
+            { q: "3 minggu sama dengan berapa hari?", opts: ["14 hari", "21 hari", "28 hari", "30 hari"], ans: 1 },
+            { q: "Pabrik memproduksi 100 mainan tiap 2 jam. Produksi per hari (24 jam)?", opts: ["1200 mainan", "2400 mainan", "1000 mainan", "500 mainan"], ans: 0 }
+        ],
+        quizData: [
+            // Mudah (3)
+            { q: "Jika 1 jam adalah 60 menit, maka setengah jam adalah...", opts: ["15 menit", "30 menit", "45 menit", "50 menit"], ans: 1, exp: "Setengah dari 60 adalah 30." },
+            { q: "Faisal dapat merakit 1 mainan dalam 10 menit. Dalam 30 menit, berapa mainan yang ia rakit?", opts: ["2 mainan", "3 mainan", "4 mainan", "5 mainan"], ans: 1, exp: "30 menit ÷ 10 menit = 3 kali. Jadi 1 x 3 = 3 mainan." },
+            { q: "Satu hari terdiri dari 24 jam. Jika pengerjaan proyek butuh 3 hari, total waktunya adalah...", opts: ["48 jam", "60 jam", "72 jam", "84 jam"], ans: 2, exp: "24 jam x 3 = 72 jam." },
+            // Sedang (4)
+            { q: "Mesin fotokopi mencetak 20 lembar dalam 1 menit. Jika mesin menyala selama 1,5 jam, berapa lembar yang dicetak?", opts: ["1.200 lembar", "1.500 lembar", "1.800 lembar", "2.000 lembar"], ans: 2, exp: "1,5 jam = 90 menit. 90 menit x 20 lembar/menit = 1.800 lembar." },
+            { q: "Sebuah bus menempuh jarak 60 km dalam waktu 45 menit. Jika kecepatan konstan, waktu untuk menempuh 80 km adalah...", opts: ["50 menit", "60 menit (1 jam)", "75 menit", "90 menit"], ans: 1, exp: "Kecepatan = 60/45 = 4/3 km/menit. Jarak 80 km / (4/3) = 60 menit." },
+            { q: "Jantung seekor hewan berdetak 120 kali dalam 3 menit. Banyaknya detak jantung hewan tersebut dalam 1 detik adalah...", opts: ["1 kali", "2/3 kali", "1,5 kali", "12 kali"], ans: 1, exp: "3 menit = 180 detik. Detak per detik = 120 / 180 = 2/3 kali/detik." },
+            { q: "Seorang penulis menyelesaikan 4 halaman dalam waktu 1 jam 20 menit. Rasio waktu (dalam menit) untuk menyelesaikan 1 halaman adalah...", opts: ["15 menit", "20 menit", "25 menit", "30 menit"], ans: 1, exp: "1 jam 20 menit = 80 menit. 80 menit ÷ 4 hal = 20 menit/halaman." },
+            // Sulit (3)
+            { q: "Pompa air A mengisi bak 100 liter dalam 5 menit. Pompa B mengisi bak 100 liter dalam 4 menit. Jika keduanya digunakan bersamaan, berapa volume yang terisi dalam 1 menit?", opts: ["20 liter", "25 liter", "45 liter", "50 liter"], ans: 2, exp: "Pompa A: 100/5 = 20 L/menit. Pompa B: 100/4 = 25 L/menit. Bersama = 20 + 25 = 45 L/menit." },
+            { q: "Pekerja bangunan memasang 30 ubin dalam 45 menit. Jika dia bekerja dari pukul 08.00 hingga 11.00 tanpa henti, jumlah ubin yang terpasang adalah...", opts: ["90 ubin", "100 ubin", "120 ubin", "150 ubin"], ans: 2, exp: "Waktu = 3 jam = 180 menit. (180 / 45) x 30 = 4 x 30 = 120 ubin." },
+            { q: "Kereta menempuh jarak tertentu dalam 2,5 jam dengan kecepatan 80 km/jam. Jika jarak yang sama ingin ditempuh dalam 2 jam, maka kecepatannya harus...", opts: ["90 km/jam", "100 km/jam", "110 km/jam", "120 km/jam"], ans: 1, exp: "Jarak = 2,5 jam x 80 km/jam = 200 km. Kecepatan baru = 200 km / 2 jam = 100 km/jam." }
+        ]
+    }
+];
+
+/** =========================================================================
+ *  STATE & GLOBAL VARIABLES
+ *  ========================================================================= */
+let currentUser = null; // { id, name, class }
+let userProgress = {}; // Fetched from server
+let currentModuleId = null;
+let gameState = { active: false, currentQ: 0, score: 0, answers: [], timer: null, timeLeft: 0 };
+let quizState = { active: false, currentQ: 0, score: 0, answers: [], isSaved: false };
+
+/** =========================================================================
+ *  NAVIGATION & UTILS
+ *  ========================================================================= */
+function navigate(viewId) {
+    ['loginView', 'appWrapper', 'dashboardView', 'moduleView', 'gameView', 'quizView', 'resultsView'].forEach(id => {
+        document.getElementById(id).classList.add('hidden-view');
+    });
+
+    if (viewId === 'login') {
+        document.getElementById('loginView').classList.remove('hidden-view');
+    } else {
+        document.getElementById('appWrapper').classList.remove('hidden-view');
+        document.getElementById(viewId + 'View').classList.remove('hidden-view');
+        
+        if (viewId === 'dashboard') renderDashboard();
+        if (viewId === 'results') renderResults();
+    }
+    window.scrollTo(0, 0);
+}
+
+function showLoading(text) {
+    document.getElementById('loadingText').innerText = text || "Memuat...";
+    document.getElementById('loadingOverlay').classList.remove('hidden-view');
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.add('hidden-view');
+}
+
+function getBadge(score) {
+    if (score >= 90) return { title: "Bintang Emas", icon: "fa-star text-yellow-400", class: "text-yellow-500", val: 3 };
+    if (score >= 80) return { title: "Bintang Perak", icon: "fa-star text-gray-400", class: "text-gray-500", val: 2 };
+    if (score >= 70) return { title: "Bintang Perunggu", icon: "fa-star text-amber-600", class: "text-amber-700", val: 1 };
+    return { title: "Pejuang Matematika", icon: "fa-medal text-blue-400", class: "text-blue-500", val: 0 };
+}
+
+/** =========================================================================
+ *  API INTEGRATION (FETCH GET + JSON)
+ *  ========================================================================= */
+async function callAPI(action, dataObj) {
+    try {
+        const payload = JSON.stringify({ action: action, data: dataObj });
+        
+        // Membungkus panggilan ke GAS menggunakan POST dgn Content-Type text/plain untuk bypass preflight
+        const response = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8',
+            },
+            body: payload
+        });
+        
+        const result = await response.json();
+        if (!result.success) throw new Error(result.message);
+        return result;
+    } catch (e) {
+        console.error("API Error:", e);
+        // Fallback or warning (Khusus untuk Vercel -> GAS tanpa blokir)
+        alert("Terjadi kesalahan koneksi sistem. " + e.message);
+        return null;
+    }
+}
+
+/** =========================================================================
+ *  LOGIN LOGIC
+ *  ========================================================================= */
+async function handleLogin() {
+    const input = document.getElementById('inputNama').value.trim();
+    if (!input) {
+        document.getElementById('loginError').classList.remove('hidden');
+        return;
+    }
+    
+    showLoading("Mencatat kehadiranmu...");
+    
+    // API Call
+    const res = await callAPI('login', { name: input, class: CONFIG.classLevel });
+    hideLoading();
+
+    if (res) {
+        currentUser = res.user;
+        userProgress = res.progress || {};
+        
+        // Update header
+        document.getElementById('headerName').innerText = currentUser.name;
+        updateHeaderStats();
+        
+        document.getElementById('welcomeMessage').innerText = `Halo, ${currentUser.name}! Siap belajar hari ini?`;
+        navigate('dashboard');
+    }
+}
+
+function handleLogout() {
+    if(confirm("Apakah kamu yakin ingin keluar?")) {
+        currentUser = null;
+        userProgress = {};
+        document.getElementById('inputNama').value = '';
+        navigate('login');
+    }
+}
+
+function updateHeaderStats() {
+    let tStars = 0, tScore = 0;
+    Object.keys(userProgress).forEach(k => {
+        if(k.startsWith('m') && userProgress[k]) {
+            let p = userProgress[k];
+            if(p.gameScore) {
+                tScore += parseInt(p.gameScore);
+                tStars += getBadge(parseInt(p.gameScore)).val;
+            }
+            if(p.quizScore) {
+                tScore += parseInt(p.quizScore);
+                tStars += getBadge(parseInt(p.quizScore)).val;
+            }
+        }
+    });
+    document.getElementById('headerStars').innerText = tStars;
+    document.getElementById('headerScore').innerText = tScore;
+}
+
+/** =========================================================================
+ *  DASHBOARD & MODULE LOGIC
+ *  ========================================================================= */
+function renderDashboard() {
+    updateHeaderStats();
+    const container = document.getElementById('moduleCardsContainer');
+    container.innerHTML = '';
+    
+    CONTENT.forEach((mod, index) => {
+        const prog = userProgress[mod.id] || {};
+        const isGameDone = prog.gameScore !== undefined;
+        const isQuizDone = prog.quizScore !== undefined;
+        const statusText = (isGameDone && isQuizDone) ? 'Sudah Selesai' : (isGameDone || isQuizDone ? 'Sedang Dipelajari' : 'Belum Dipelajari');
+        const statusColor = (isGameDone && isQuizDone) ? 'bg-green-100 text-green-700 border-green-300' : (isGameDone || isQuizDone ? 'bg-yellow-100 text-yellow-700 border-yellow-300' : 'bg-gray-100 text-gray-600 border-gray-300');
+
+        const card = document.createElement('div');
+        card.className = `bg-white rounded-3xl p-6 shadow-lg border-2 hover:border-${mod.color}-500 card-hover cursor-pointer transition-all flex flex-col`;
+        card.onclick = () => openModule(mod.id);
+        card.innerHTML = `
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-full bg-${mod.color}-100 flex items-center justify-center text-${mod.color}-500 text-xl"><i class="fas ${mod.icon}"></i></div>
+                <div class="text-sm font-bold border px-3 py-1 rounded-full ${statusColor}">${statusText}</div>
+            </div>
+            <h4 class="text-xl font-extrabold mb-2 text-gray-800">${mod.title}</h4>
+            <p class="text-gray-500 text-sm mb-4 flex-grow">${mod.objectives[0]}</p>
+            <div class="flex gap-2 text-sm font-bold">
+                <div class="${isGameDone ? 'text-green-500' : 'text-gray-400'}"><i class="fas fa-gamepad"></i> Game</div>
+                <div class="${isQuizDone ? 'text-green-500' : 'text-gray-400'}"><i class="fas fa-check-circle"></i> Kuis</div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function openModule(modId) {
+    currentModuleId = modId;
+    const mod = CONTENT.find(m => m.id === modId);
+    
+    document.getElementById('modTitle').innerText = mod.title;
+    
+    let html = `
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-r-xl">
+            <h4 class="font-bold text-blue-700 mb-2">Tujuan Pembelajaran:</h4>
+            <ul class="list-disc pl-5 text-blue-900 font-semibold space-y-1">
+                ${mod.objectives.map(o => `<li>${o}</li>`).join('')}
+            </ul>
+        </div>
+        <div>
+            ${mod.theory}
+        </div>
+    `;
+    document.getElementById('modContent').innerHTML = html;
+    
+    document.getElementById('btnPlayGame').onclick = () => openGame(modId);
+    document.getElementById('btnTakeQuiz').onclick = () => openQuiz(modId);
+    
+    navigate('module');
+}
+
+/** =========================================================================
+ *  GAME LOGIC
+ *  ========================================================================= */
+function openGame(modId) {
+    const mod = CONTENT.find(m => m.id === modId);
+    document.getElementById('gameTitle').innerText = mod.gameName;
+    document.getElementById('gameIcon').className = `fas ${mod.gameIcon} text-6xl text-${mod.gameColor}-500 mb-4`;
+    document.getElementById('gameInstruction').innerText = mod.gameInstruction;
+    
+    document.getElementById('gameIntro').classList.remove('hidden-view');
+    document.getElementById('gamePlayArea').classList.add('hidden-view');
+    document.getElementById('gameResultArea').classList.add('hidden-view');
+    
+    // Timer feature for module 4
+    if(modId === 'm4') {
+        document.getElementById('gameTimer').classList.remove('hidden-view');
+    } else {
+        document.getElementById('gameTimer').classList.add('hidden-view');
+    }
+    
+    navigate('game');
+}
+
+function startGameplay() {
+    const mod = CONTENT.find(m => m.id === currentModuleId);
+    gameState = {
+        active: true,
+        currentQ: 0,
+        score: 0,
+        answers: [],
+        data: [...mod.gameData].sort(() => Math.random() - 0.5) // Shuffle challenges
+    };
+    
+    document.getElementById('gameIntro').classList.add('hidden-view');
+    document.getElementById('gamePlayArea').classList.remove('hidden-view');
+    document.getElementById('gameScoreVal').innerText = "0";
+    
+    if(currentModuleId === 'm4') {
+        gameState.timeLeft = 60 * 5; // 5 minutes timer
+        updateTimerDisplay();
+        gameState.timer = setInterval(() => {
+            gameState.timeLeft--;
+            updateTimerDisplay();
+            if(gameState.timeLeft <= 0) endGame();
+        }, 1000);
+    }
+    
+    renderGameChallenge();
+}
+
+function updateTimerDisplay() {
+    const m = Math.floor(gameState.timeLeft / 60).toString().padStart(2, '0');
+    const s = (gameState.timeLeft % 60).toString().padStart(2, '0');
+    document.getElementById('timerVal').innerText = `${m}:${s}`;
+}
+
+function renderGameChallenge() {
+    if(gameState.currentQ >= 10 || gameState.currentQ >= gameState.data.length) {
+        return endGame();
+    }
+    
+    document.getElementById('gameCurrentQ').innerText = gameState.currentQ + 1;
+    const qData = gameState.data[gameState.currentQ];
+    
+    document.getElementById('gameQuestion').innerText = qData.q;
+    const optContainer = document.getElementById('gameOptions');
+    optContainer.innerHTML = '';
+    
+    // Randomize options
+    let opts = qData.opts.map((opt, idx) => ({ text: opt, isCorrect: idx === qData.ans }));
+    opts.sort(() => Math.random() - 0.5);
+    
+    opts.forEach((opt) => {
+        const btn = document.createElement('button');
+        btn.className = "bg-gray-100 hover:bg-blue-100 border-2 border-gray-200 hover:border-blue-400 p-4 rounded-xl text-lg font-bold transition-all text-gray-700 shadow-sm";
+        btn.innerText = opt.text;
+        btn.onclick = () => handleGameAnswer(btn, opt.isCorrect, opts);
+        optContainer.appendChild(btn);
+    });
+    
+    const fb = document.getElementById('gameFeedback');
+    fb.className = "mt-6 text-xl font-bold hidden opacity-0 transition-opacity";
+}
+
+function handleGameAnswer(btnElement, isCorrect, allOptsElements) {
+    if(!gameState.active) return;
+    
+    const buttons = document.getElementById('gameOptions').children;
+    for(let b of buttons) { b.disabled = true; } // Disable all
+    
+    const fb = document.getElementById('gameFeedback');
+    fb.classList.remove('hidden');
+    fb.classList.remove('opacity-0');
+    
+    if(isCorrect) {
+        btnElement.classList.replace('bg-gray-100', 'bg-green-500');
+        btnElement.classList.replace('text-gray-700', 'text-white');
+        gameState.score += 10;
+        document.getElementById('gameScoreVal').innerText = gameState.score;
+        fb.innerText = "Hebat! Jawabanmu tepat!";
+        fb.className = "mt-6 text-xl font-extrabold text-green-500 transition-opacity";
+    } else {
+        btnElement.classList.replace('bg-gray-100', 'bg-red-500');
+        btnElement.classList.replace('text-gray-700', 'text-white');
+        fb.innerText = "Belum tepat. Ayo coba pahami kembali!";
+        fb.className = "mt-6 text-xl font-extrabold text-red-500 transition-opacity";
+    }
+    
+    setTimeout(() => {
+        gameState.currentQ++;
+        renderGameChallenge();
+    }, 1500);
+}
+
+function endGame() {
+    gameState.active = false;
+    if(gameState.timer) clearInterval(gameState.timer);
+    
+    document.getElementById('gamePlayArea').classList.add('hidden-view');
+    document.getElementById('gameResultArea').classList.remove('hidden-view');
+    document.getElementById('gameFinalScore').innerText = gameState.score;
+    
+    const badge = getBadge(gameState.score);
+    const badgeEl = document.getElementById('gameBadge');
+    badgeEl.innerHTML = `<i class="fas ${badge.icon} text-4xl mb-2 block"></i> ${badge.title}`;
+    badgeEl.className = `text-2xl font-extrabold mb-6 ${badge.class}`;
+}
+
+async function finishGame() {
+    showLoading("Menyimpan skor game...");
+    const mod = CONTENT.find(m => m.id === currentModuleId);
+    
+    const payload = {
+        userId: currentUser.id,
+        modId: currentModuleId,
+        gameName: mod.gameName,
+        score: gameState.score,
+        correct: gameState.score / 10,
+        total: 10
+    };
+    
+    const res = await callAPI('saveGame', payload);
+    hideLoading();
+    
+    if(res) {
+        // Update local progress
+        if(!userProgress[currentModuleId]) userProgress[currentModuleId] = {};
+        userProgress[currentModuleId].gameScore = gameState.score;
+        navigate('module');
+    }
+}
+
+/** =========================================================================
+ *  QUIZ LOGIC
+ *  ========================================================================= */
+function openQuiz(modId) {
+    const mod = CONTENT.find(m => m.id === modId);
+    quizState = {
+        active: true,
+        currentQ: 0,
+        score: 0,
+        answers: [],
+        data: [...mod.quizData].sort(() => Math.random() - 0.5)
+    };
+    
+    document.getElementById('quizResultArea').classList.add('hidden-view');
+    document.getElementById('quizPlayArea').classList.remove('hidden-view');
+    document.getElementById('btnQuizNext').classList.add('hidden');
+    document.getElementById('quizPembahasan').classList.add('hidden');
+    
+    navigate('quiz');
+    renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+    document.getElementById('quizCurrentQ').innerText = quizState.currentQ + 1;
+    const qData = quizState.data[quizState.currentQ];
+    
+    document.getElementById('quizQuestion').innerText = `${quizState.currentQ + 1}. ${qData.q}`;
+    const optContainer = document.getElementById('quizOptions');
+    optContainer.innerHTML = '';
+    
+    let opts = qData.opts.map((opt, idx) => ({ text: opt, originalIdx: idx }));
+    opts.sort(() => Math.random() - 0.5); // acak pilihan ganda
+    
+    opts.forEach((opt, index) => {
+        const char = String.fromCharCode(65 + index); // A, B, C, D
+        const btn = document.createElement('button');
+        btn.className = "w-full text-left bg-white border-2 border-gray-200 hover:border-blue-500 p-4 rounded-xl text-lg font-bold transition-all text-gray-700 flex items-center gap-4";
+        btn.innerHTML = `<span class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-blue-600">${char}</span> <span>${opt.text}</span>`;
+        btn.onclick = () => handleQuizAnswer(btn, opt.originalIdx, qData.ans);
+        optContainer.appendChild(btn);
+    });
+    
+    document.getElementById('btnQuizNext').classList.add('hidden');
+}
+
+function handleQuizAnswer(btnElement, selectedIdx, correctIdx) {
+    if(document.getElementById('btnQuizNext').classList.contains('hidden') === false) return; // Prevent double click
+    
+    const buttons = document.getElementById('quizOptions').children;
+    for(let b of buttons) { b.disabled = true; }
+    
+    const isCorrect = selectedIdx === correctIdx;
+    
+    // Highlight selected
+    btnElement.classList.replace('border-gray-200', isCorrect ? 'border-green-500' : 'border-red-500');
+    btnElement.classList.add(isCorrect ? 'bg-green-50' : 'bg-red-50');
+    
+    // Highlight correct answer if wrong
+    if(!isCorrect) {
+        for(let b of buttons) {
+            // Find which button contains the correct original index.
+            const qData = quizState.data[quizState.currentQ];
+            const correctText = qData.opts[correctIdx];
+            if(b.innerText.includes(correctText)) {
+                b.classList.replace('border-gray-200', 'border-green-500');
+                b.classList.add('bg-green-50');
+            }
+        }
+    } else {
+        quizState.score += 10;
+    }
+    
+    // Simpan history jawaban
+    quizState.answers.push({
+        qIndex: quizState.currentQ, 
+        qText: quizState.data[quizState.currentQ].q,
+        isCorrect: isCorrect,
+        exp: quizState.data[quizState.currentQ].exp
+    });
+    
+    document.getElementById('btnQuizNext').classList.remove('hidden');
+}
+
+function nextQuiz() {
+    quizState.currentQ++;
+    if(quizState.currentQ >= 10 || quizState.currentQ >= quizState.data.length) {
+        endQuiz();
+    } else {
+        renderQuizQuestion();
+    }
+}
+
+function endQuiz() {
+    document.getElementById('quizPlayArea').classList.add('hidden-view');
+    document.getElementById('quizResultArea').classList.remove('hidden-view');
+    
+    const correctCount = quizState.score / 10;
+    document.getElementById('quizBenar').innerText = correctCount;
+    document.getElementById('quizSalah').innerText = 10 - correctCount;
+    document.getElementById('quizNilai').innerText = quizState.score;
+    
+    // Generate Pembahasan
+    const pemList = document.getElementById('pembahasanList');
+    pemList.innerHTML = '';
+    quizState.answers.forEach((ans, i) => {
+        pemList.innerHTML += `
+            <div class="p-3 ${ans.isCorrect ? 'bg-green-50 border-l-4 border-green-400' : 'bg-red-50 border-l-4 border-red-400'} rounded shadow-sm">
+                <p class="font-bold text-gray-800">${i+1}. ${ans.qText}</p>
+                <p class="text-sm text-gray-600 mt-1"><i class="fas fa-info-circle"></i> ${ans.exp}</p>
+            </div>
+        `;
+    });
+    document.getElementById('quizPembahasan').classList.remove('hidden');
+}
+
+async function finishQuiz() {
+    showLoading("Menyimpan hasil kuis...");
+    
+    const payload = {
+        userId: currentUser.id,
+        modId: currentModuleId,
+        score: quizState.score,
+        correct: quizState.score / 10,
+        wrong: 10 - (quizState.score / 10),
+        total: 10,
+        answers: quizState.answers.map(a => ({ q: a.qText, c: a.isCorrect }))
+    };
+    
+    const res = await callAPI('saveQuiz', payload);
+    hideLoading();
+    
+    if(res) {
+        if(!userProgress[currentModuleId]) userProgress[currentModuleId] = {};
+        userProgress[currentModuleId].quizScore = quizState.score;
+        navigate('module');
+    }
+}
+
+/** =========================================================================
+ *  RESULTS VIEW
+ *  ========================================================================= */
+function renderResults() {
+    document.getElementById('resStudentInfo').innerText = `${currentUser.name} - ${currentUser.class}`;
+    
+    let tStars = 0;
+    let tGame = 0, countGame = 0;
+    let tQuiz = 0, countQuiz = 0;
+    
+    const tbody = document.getElementById('resTableBody');
+    tbody.innerHTML = '';
+    
+    CONTENT.forEach(mod => {
+        const p = userProgress[mod.id] || {};
+        const gs = p.gameScore !== undefined ? p.gameScore : '-';
+        const qs = p.quizScore !== undefined ? p.quizScore : '-';
+        
+        let status = "<span class='text-red-500 font-bold'>Belum</span>";
+        if (gs !== '-' && qs !== '-') status = "<span class='text-green-500 font-bold'>Selesai</span>";
+        else if (gs !== '-' || qs !== '-') status = "<span class='text-yellow-500 font-bold'>Proses</span>";
+
+        if(gs !== '-') { tGame += parseInt(gs); countGame++; tStars += getBadge(parseInt(gs)).val; }
+        if(qs !== '-') { tQuiz += parseInt(qs); countQuiz++; tStars += getBadge(parseInt(qs)).val; }
+        
+        tbody.innerHTML += `
+            <tr class="border-b hover:bg-gray-50">
+                <td class="p-3 border font-bold text-gray-700">${mod.title}</td>
+                <td class="p-3 border text-center font-bold ${gs !== '-' ? 'text-blue-600' : ''}">${gs}</td>
+                <td class="p-3 border text-center font-bold ${qs !== '-' ? 'text-blue-600' : ''}">${qs}</td>
+                <td class="p-3 border text-center">${status}</td>
+            </tr>
+        `;
+    });
+    
+    document.getElementById('resTotalStars').innerText = tStars;
+    document.getElementById('resAvgGame').innerText = countGame > 0 ? Math.round(tGame / countGame) : 0;
+    document.getElementById('resAvgQuiz').innerText = countQuiz > 0 ? Math.round(tQuiz / countQuiz) : 0;
+}
+</script>
+</body>
+</html>
